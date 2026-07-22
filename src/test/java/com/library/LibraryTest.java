@@ -83,9 +83,8 @@ class LibraryTest {
     @AfterEach
     public void tearDown() throws Exception {
         System.setOut(standardOut);
-        if (closeable != null) {
+        if (closeable != null)
             closeable.close();
-        }
     }
 
     @Test
@@ -175,7 +174,7 @@ class LibraryTest {
     }
 
     @Test
-    void givenAddBook_persistsToDatabase_withCorrectValues_andNotBorrowed() throws SQLException, InvalidParameterException {
+    public void givenAddBook_persistsToDatabase_withCorrectValues_andNotBorrowed() throws SQLException, InvalidParameterException {
         Book book = new Book("C# In Depth", "Jon Skeet");
         when(mockPreparedStatement.executeUpdate()).thenReturn(1);
         library = new Library(mockConnection);
@@ -190,7 +189,7 @@ class LibraryTest {
     }
 
     @Test
-    void givenAddBook_returnsFalse_whenSqlExceptionThrown() throws SQLException, InvalidParameterException {
+    public void givenAddBook_returnsFalse_whenSqlExceptionThrown() throws SQLException, InvalidParameterException {
         Book book = new Book("Brave New World", "Aldous Huxley");
         library = new Library(mockConnection);
         when(mockConnection.prepareStatement(anyString())).thenThrow(new SQLException("Test message."));
@@ -206,13 +205,13 @@ class LibraryTest {
     }
 
     @Test
-    void givenAddBook_whenBookIsNull_throwsInvalidParameterException() {
+    public void givenAddBook_whenBookIsNull_throwsInvalidParameterException() {
         library = new Library(mockConnection);
         assertThrows(InvalidParameterException.class, () -> library.addBook(null));
     }
 
     @Test
-    void givenTwoBooks_onViewBooks_returnsCorrectList() throws SQLException {
+    public void givenTwoBooks_onViewBooks_returnsCorrectList() throws SQLException {
         when(mockResultSet.next()).thenReturn(true, true, false);
         when(mockResultSet.getString("title")).thenReturn("C# In Depth", "Clean Code");
         when(mockResultSet.getString("author")).thenReturn("Jon Skeet", "Robert C. Martin");
@@ -234,7 +233,7 @@ class LibraryTest {
     }
 
     @Test
-    void givenBookThatDoesNotExist_onSearchForBook_throwsBookNotFoundException() {
+    public void givenBookThatDoesNotExist_onSearchForBook_throwsBookNotFoundException() {
         library = new Library(mockConnection);
         assertThrows(BookNotFoundException.class, () -> library.searchBook("Nonexistent Book"));
     }
@@ -246,19 +245,19 @@ class LibraryTest {
     }
 
     @Test
-    void whenSearchingForBook_withEmptyString_throwsInvalidParameterException() {
+    public void whenSearchingForBook_withEmptyString_throwsInvalidParameterException() {
         library = new Library(mockConnection);
         assertThrows(InvalidParameterException.class, () -> library.searchBook(""));
     }
 
     @Test
-    void whenSearchingForBook_withBlankString_throwsInvalidParameterException() {
+    public void whenSearchingForBook_withBlankString_throwsInvalidParameterException() {
         library = new Library(mockConnection);
         assertThrows(InvalidParameterException.class, () -> library.searchBook("    "));
     }
 
     @Test
-    void givenBookExists_onSearchForBook_returnsCorrectBook() throws BookNotFoundException, InvalidParameterException, SQLException {
+    public void givenBookExists_onSearchForBook_returnsCorrectBook() throws BookNotFoundException, InvalidParameterException, SQLException {
         when(mockResultSet.next()).thenReturn(true, false);
         when(mockResultSet.getString("title")).thenReturn("C# In Depth");
         when(mockResultSet.getString("author")).thenReturn("Jon Skeet");
@@ -280,45 +279,45 @@ class LibraryTest {
     }
 
     @Test
-    void givenDatabaseError_onSearchBook_throwsRuntimeException() throws SQLException {
+    public void givenDatabaseError_onSearchBook_throwsRuntimeException() throws SQLException {
         when(mockConnection.prepareStatement(anyString())).thenThrow(new SQLException("Database connection failed"));
         library = new Library(mockConnection);
         assertThrows(RuntimeException.class, () -> library.searchBook("Clean Code"));
     }
 
     @Test
-    void givenSQLExceptionOnExecuteQuery_onViewAllBooks_throwsRuntimeExceptionWithOriginalCause() throws SQLException {
+    public void givenSQLExceptionOnExecuteQuery_onViewAllBooks_throwsRuntimeExceptionWithOriginalCause() throws SQLException {
         when(mockPreparedStatement.executeQuery()).thenThrow(new SQLException("Table 'books' does not exist"));
         library = new Library(mockConnection);
         assertThrows(RuntimeException.class, () -> library.viewAllBooks());
     }
 
     @Test
-    void whenSearchingForBooksByAuthor_withNull_throwsInvalidArgumentException() {
+    public void whenSearchingForBooksByAuthor_withNull_throwsInvalidArgumentException() {
         library = new Library(mockConnection);
         assertThrows(InvalidParameterException.class, () -> library.getBooksByAuthor(null));
     }
 
     @Test
-    void whenSearchingForBooksByAuthor_withEmptyString_throwsInvalidArgumentException() {
+    public void whenSearchingForBooksByAuthor_withEmptyString_throwsInvalidArgumentException() {
         library = new Library(mockConnection);
         assertThrows(InvalidParameterException.class, () -> library.getBooksByAuthor(""));
     }
 
     @Test
-    void whenSearchingForBooksByAuthor_withBlankString_throwsInvalidArgumentException() {
+    public void whenSearchingForBooksByAuthor_withBlankString_throwsInvalidArgumentException() {
         library = new Library(mockConnection);
         assertThrows(InvalidParameterException.class, () -> library.getBooksByAuthor("     "));
     }
 
     @Test
-    void whenSearchingForBooksByAuthor_whereAuthorHasNoBooks_throwsAuthorNotFoundException() {
+    public void whenSearchingForBooksByAuthor_whereAuthorHasNoBooks_throwsAuthorNotFoundException() {
         library = new Library(mockConnection);
         assertThrows(AuthorNotFoundException.class, () -> library.getBooksByAuthor("Bob"));
     }
 
     @Test
-    void whenSearchingForBooksByAuthor_whereAuthorOneBooks_returnsCorrectBook() throws InvalidParameterException, AuthorNotFoundException, SQLException {
+    public void whenSearchingForBooksByAuthor_whereAuthorOneBooks_returnsCorrectBook() throws InvalidParameterException, AuthorNotFoundException, SQLException {
         when(mockPreparedStatement.executeUpdate()).thenReturn(1);
         when(mockResultSet.next()).thenReturn(true, false);
         when(mockResultSet.getString("title")).thenReturn("Software Mistakes and Tradeoffs: How to Make Good Programming Decisions");
@@ -337,7 +336,7 @@ class LibraryTest {
     }
 
     @Test
-    void whenSearchingForBooksByAuthor_whereAuthorHasTwoBooks_returnsCorrectBooks_sortedAlphabetically() throws InvalidParameterException, AuthorNotFoundException, SQLException {
+    public void whenSearchingForBooksByAuthor_whereAuthorHasTwoBooks_returnsCorrectBooks_sortedAlphabetically() throws InvalidParameterException, AuthorNotFoundException, SQLException {
         when(mockPreparedStatement.executeUpdate()).thenReturn(1);
         when(mockResultSet.next()).thenReturn(true, true, false);
         when(mockResultSet.getString("title")).thenReturn("C# In Depth", "Software Mistakes and Tradeoffs: How to Make Good Programming Decisions");
@@ -363,7 +362,7 @@ class LibraryTest {
     }
 
     @Test
-    void whenSearchingForBooksByAuthor_whereAuthorTwoBooks_AndThereIsASecondAuthor_returnsCorrectBooks_sortedAlphabetically() throws InvalidParameterException, AuthorNotFoundException, SQLException {
+    public void whenSearchingForBooksByAuthor_whereAuthorTwoBooks_AndThereIsASecondAuthor_returnsCorrectBooks_sortedAlphabetically() throws InvalidParameterException, AuthorNotFoundException, SQLException {
         when(mockPreparedStatement.executeUpdate()).thenReturn(1);
         when(mockResultSet.next()).thenReturn(
                 true, true, false, // Jon Skeet's 2 books
@@ -412,13 +411,13 @@ class LibraryTest {
     }
 
     @Test
-    void whenRequestingListOfBorrowedBooks_withNoBorrowedBooks_throwsNoBooksFoundException() {
+    public void whenRequestingListOfBorrowedBooks_withNoBorrowedBooks_throwsNoBooksFoundException() {
         library = new Library(mockConnection);
         assertThrows(NoBooksBorrowedException.class, () -> library.viewBorrowedBooks());
     }
 
     @Test
-    void givenTwoBooks_withOneBorrowed_returnsCorrectlyBorrowedBooks() throws Exception {
+    public void givenTwoBooks_withOneBorrowed_returnsCorrectlyBorrowedBooks() throws Exception {
         library = new Library(mockConnection);
 
         when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
@@ -455,7 +454,7 @@ class LibraryTest {
     }
 
     @Test
-    void givenBook_alreadyBorrowed_throwsAlreadyBorrowedException() throws SQLException {
+    public void givenBook_alreadyBorrowed_throwsAlreadyBorrowedException() throws SQLException {
         when(mockConnection.prepareStatement(SEARCH_FOR_BOOK_Query)).thenReturn(mockPreparedStatement);
         when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
         when(mockResultSet.next()).thenReturn(true, false);
@@ -468,7 +467,7 @@ class LibraryTest {
     }
 
     @Test
-    void testReturnBook_WhenBookDoesNotExist_throwsBookNotFoundException() throws Exception {
+    public void testReturnBook_WhenBookDoesNotExist_throwsBookNotFoundException() throws Exception {
         library = new Library(mockConnection);
         when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
 
@@ -479,7 +478,7 @@ class LibraryTest {
     }
 
     @Test
-    void whenReturningBook_thatIsNotBorrowed_throwsNotBorrowedException() throws Exception {
+    public void whenReturningBook_thatIsNotBorrowed_throwsNotBorrowedException() throws Exception {
         library = new Library(mockConnection);
 
         ResultSet searchRs = mock(ResultSet.class);
@@ -492,7 +491,7 @@ class LibraryTest {
     }
 
     @Test
-    void whenReturningBook_returnsFalse_whenSqlExceptionIsThrown() throws InvalidParameterException, SQLException, NotBorrowedException, BookNotFoundException {
+    public void whenReturningBook_returnsFalse_whenSqlExceptionIsThrown() throws InvalidParameterException, SQLException, NotBorrowedException, BookNotFoundException {
         library = new Library(mockConnection);
 
         ResultSet searchRs = mock(ResultSet.class);
@@ -512,31 +511,31 @@ class LibraryTest {
     }
 
     @Test
-    void whenReturningBook_thatDoesNotExist_throwsBookNotFoundException() {
+    public void whenReturningBook_thatDoesNotExist_throwsBookNotFoundException() {
         library = new Library(mockConnection);
         assertThrows(BookNotFoundException.class, () -> library.returnBook("Nonexistent Book"));
     }
 
     @Test
-    void whenReturningBook_withNullValue_throwsInvalidParameterException() {
+    public void whenReturningBook_withNullValue_throwsInvalidParameterException() {
         library = new Library(mockConnection);
         assertThrows(InvalidParameterException.class, () -> library.returnBook(null));
     }
 
     @Test
-    void whenReturningBook_withEmptyTitle_throwsInvalidParameterException() {
+    public void whenReturningBook_withEmptyTitle_throwsInvalidParameterException() {
         library = new Library(mockConnection);
         assertThrows(InvalidParameterException.class, () -> library.returnBook(""));
     }
 
     @Test
-    void whenReturningBook_withBlankString_throwsInvalidParameterException() {
+    public void whenReturningBook_withBlankString_throwsInvalidParameterException() {
         library = new Library(mockConnection);
         assertThrows(InvalidParameterException.class, () -> library.returnBook("    "));
     }
 
     @Test
-    void testReturnBook_WhenBookIsBorrowed() throws Exception {
+    public void testReturnBook_WhenBookIsBorrowed() throws Exception {
         library = new Library(mockConnection);
 
         ResultSet searchRs = mock(ResultSet.class);
@@ -554,13 +553,13 @@ class LibraryTest {
     }
 
     @Test
-    void whenBorrowingBook_thatDoesNotExist_throwsBookNotFoundException() {
+    public void whenBorrowingBook_thatDoesNotExist_throwsBookNotFoundException() {
         library = new Library(mockConnection);
         assertThrows(BookNotFoundException.class, () -> library.borrowBook("Nonexistent Book"));
     }
 
     @Test
-    void givenBorrowBook_returnsFalse_whenSqlExceptionThrown() throws Exception {
+    public void givenBorrowBook_returnsFalse_whenSqlExceptionThrown() throws Exception {
         library = new Library(mockConnection);
 
         ResultSet searchRs = mock(ResultSet.class);
@@ -580,14 +579,14 @@ class LibraryTest {
     }
 
     @Test
-    void givenDatabaseError_onViewBorrowedBooks_throwsRuntimeException() throws SQLException {
+    public void givenDatabaseError_onViewBorrowedBooks_throwsRuntimeException() throws SQLException {
         library = new Library(mockConnection);
         when(mockPreparedStatement.executeQuery()).thenThrow(new SQLException("Database query failed"));
         assertThrows(RuntimeException.class, () -> library.viewBorrowedBooks());
     }
 
     @Test
-    void testReturnBook_whenBookExists_butIsNotBorrowed_throwsNotBorrowedException() throws Exception {
+    public void testReturnBook_whenBookExists_butIsNotBorrowed_throwsNotBorrowedException() throws Exception {
         library = new Library(mockConnection);
 
         ResultSet searchRs = mock(ResultSet.class);
@@ -603,7 +602,7 @@ class LibraryTest {
     }
 
     @Test
-    void testViewAvailableBooks() throws SQLException, InvalidParameterException, NoBooksAvailableException {
+    public void testViewAvailableBooks() throws SQLException, InvalidParameterException, NoBooksAvailableException {
         Book book1 = new Book("1984", "George Orwell");
         Book book2 = new Book("The Catcher in the Rye", "J.D. Salinger");
 
@@ -632,7 +631,7 @@ class LibraryTest {
     }
 
     @Test
-    void testViewAllBooks() throws SQLException, AlreadyBorrowedException, BookNotFoundException, InvalidParameterException, NoBooksAvailableException {
+    public void testViewAllBooks() throws SQLException, AlreadyBorrowedException, BookNotFoundException, InvalidParameterException, NoBooksAvailableException {
         Book book1 = new Book("1984", "George Orwell");
         Book book2 = new Book("The Catcher in the Rye", "J.D. Salinger");
 
