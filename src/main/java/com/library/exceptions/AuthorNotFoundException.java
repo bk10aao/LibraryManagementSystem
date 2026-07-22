@@ -1,0 +1,15 @@
+package com.library.exceptions;
+
+/**
+ * Exception thrown when attempting to find a non-existent Author.
+ */
+public class AuthorNotFoundException extends Exception {
+    /**
+     * Constructs a new AuthorNotFoundException with the specified message.
+     *
+     * @param message the detail message
+     */
+    public AuthorNotFoundException(final String message) {
+        super(message);
+    }
+}
