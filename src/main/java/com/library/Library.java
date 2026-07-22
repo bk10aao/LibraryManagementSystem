@@ -101,16 +101,9 @@ public class Library {
      * @throws InvalidParameterException if author is null, empty ot blank.
      * @throws AuthorNotFoundException if author is not found.
      */
-    public List<Book> getBooksByAuthor(String author) throws InvalidParameterException, AuthorNotFoundException, SQLException {
+    public List<Book> getBooksByAuthor(String author) throws InvalidParameterException, AuthorNotFoundException {
         validateAuthor(author);
-        List<Book> books = new ArrayList<>();
-        try(PreparedStatement preparedStatement = connection.prepareStatement(SELECT_BOOKS_BY_AUTHOR_QUERY)) {
-            preparedStatement.setString(1, author.trim());
-            try(ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next())
-                    books.add(mapBook(resultSet));
-            }
-        }
+        List<Book> books = executeQuery(SELECT_BOOKS_BY_AUTHOR_QUERY, stmt -> stmt.setString(1, author.trim()));
         if(books.isEmpty())
             throw new AuthorNotFoundException("No books found for author: " + author.trim());
         return books;
@@ -150,15 +143,12 @@ public class Library {
      */
     public List<Book> searchBook(final String title) throws BookNotFoundException, InvalidParameterException {
         validateTitle(title);
-        List<Book> foundBooks = new ArrayList<>();
-        try(PreparedStatement preparedStatement = connection.prepareStatement(SEARCH_FOR_BOOK_Query)) {
-            preparedStatement.setString(1, title.trim());
-            try(ResultSet resultSet = preparedStatement.executeQuery()) {
-                while(resultSet.next())
-                    foundBooks.add(mapBook(resultSet));
-            }
-        } catch (SQLException e) {
-            System.out.println("Error searching for book in the library: " + e.getMessage());
+        List<Book> foundBooks;
+        try {
+            foundBooks = executeQuery(SEARCH_FOR_BOOK_Query, stmt -> stmt.setString(1, title.trim()));
+        } catch (RuntimeException e) {
+            System.out.println("Error searching for book in the library: " + e.getCause().getMessage());
+            throw e;
         }
         if (foundBooks.isEmpty())
             throw new BookNotFoundException(BOOK_NOT_FOUND);
@@ -170,16 +160,8 @@ public class Library {
      *
      * @return a list of all books in library, borrowed or not.
      */
-    public List<Book> viewAllBooks() throws InvalidParameterException {
-        List<Book> books = new ArrayList<>();
-        try (PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_BOOKS_QUERY);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next())
-                books.add(mapBook(resultSet));
-        } catch (SQLException e) {
-            throw new RuntimeException("Invalid argument when reading from database: " + e.getMessage(), e);
-        }
-        return books;
+    public List<Book> viewAllBooks() {
+        return executeQuery(SELECT_ALL_BOOKS_QUERY, stmt -> {});
     }
 
     /**
@@ -187,15 +169,8 @@ public class Library {
      *
      * @return a list of books that are not borrowed.
      */
-    public List<Book> viewAvailableBooks() throws NoBooksAvailableException, InvalidParameterException {
-        List<Book> books = new ArrayList<>();
-        try(PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_AVAILABLE_BOOKS_QUERY);
-            ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next())
-                books.add(mapBook(resultSet));
-        } catch (SQLException e) {
-            throw new RuntimeException("Invalid argument when reading from database: " + e.getMessage(), e);
-        }
+    public List<Book> viewAvailableBooks() throws NoBooksAvailableException {
+        List<Book> books = executeQuery(SELECT_ALL_AVAILABLE_BOOKS_QUERY, stmt -> {});
         if(books.isEmpty())
             throw new NoBooksAvailableException(NO_BOOKS_AVAILABLE);
         return books;
@@ -206,15 +181,8 @@ public class Library {
      *
      * @return a list of all borrowed books.
      */
-    public List<Book> viewBorrowedBooks() throws InvalidParameterException, NoBooksBorrowedException {
-        List<Book> books = new ArrayList<>();
-        try(PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_BORROWED_BOOKS_QUERY);
-            ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next())
-                books.add(mapBook(resultSet));
-        } catch (SQLException e) {
-            throw new RuntimeException("Invalid argument when reading from database: " + e.getMessage(), e);
-        }
+    public List<Book> viewBorrowedBooks() throws NoBooksBorrowedException {
+        List<Book> books = executeQuery(SELECT_ALL_BORROWED_BOOKS_QUERY, stmt -> {});
         if(books.isEmpty())
             throw new NoBooksBorrowedException(NO_BOOKS_BORROWED);
         return books;
@@ -238,5 +206,23 @@ public class Library {
         final Book book = new Book(resultSet.getString("title"), resultSet.getString("author"));
         book.setBorrowed(resultSet.getBoolean("is_borrowed"));
         return book;
+    }
+
+    private List<Book> executeQuery(String sqlQuery, ThrowingConsumer<PreparedStatement, SQLException> parameterBinder) {
+        List<Book> books = new ArrayList<>();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery)) {
+            parameterBinder.accept(preparedStatement);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) books.add(mapBook(resultSet));
+            }
+        } catch (SQLException | InvalidParameterException e) {
+            throw new RuntimeException("Invalid argument when reading from database: " + e.getMessage(), e);
+        }
+        return books;
+    }
+
+    @FunctionalInterface
+    private interface ThrowingConsumer<T, E extends Exception> {
+        void accept(T t) throws E;
     }
 }

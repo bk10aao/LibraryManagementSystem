@@ -89,7 +89,7 @@ class LibraryTest {
     }
 
     @Test
-    public void givenLibrary_initializedNotEmpty_returnsCorrectBook() throws SQLException, InvalidParameterException {
+    public void givenLibrary_initializedNotEmpty_returnsCorrectBook() throws SQLException {
         when(mockResultSet.next()).thenReturn(true, false);
         when(mockResultSet.getString("title")).thenReturn("C# In Depth");
         when(mockResultSet.getString("author")).thenReturn("Jon Skeet");
@@ -112,7 +112,7 @@ class LibraryTest {
     }
 
     @Test
-    public void givenLibrary_initializedEmpty_returnsEmptyDatabase() throws SQLException, InvalidParameterException {
+    public void givenLibrary_initializedEmpty_returnsEmptyDatabase() throws SQLException {
         when(mockResultSet.next()).thenReturn(false);
         library = new Library(mockConnection);
         List<Book> books = library.viewAllBooks();
@@ -135,18 +135,22 @@ class LibraryTest {
     }
 
     @Test
-    public void givenLibraryConstructor_throwsInvalidParameterException_whenReadingInvalidBookDataFromDatabase() throws SQLException {
+    public void givenLibraryConstructor_throwsRuntimeException_whenReadingInvalidBookDataFromDatabase() throws SQLException {
+        library = new Library(mockConnection);
+
+        when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
+        when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
+
         when(mockResultSet.next()).thenReturn(true, false);
         when(mockResultSet.getString("title")).thenReturn("");
         when(mockResultSet.getString("author")).thenReturn("Jon Skeet");
         when(mockResultSet.getBoolean("is_borrowed")).thenReturn(false);
 
-        library = new Library(mockConnection);
-        assertThrows(InvalidParameterException.class, () -> library.viewAllBooks());
+        assertThrows(RuntimeException.class, () -> library.viewAllBooks());
     }
 
     @Test
-    public void givenLibraryConstructor_returnsBookBorrowed_whenInstantiatingDataBase() throws SQLException, InvalidParameterException {
+    public void givenLibraryConstructor_returnsBookBorrowed_whenInstantiatingDataBase() throws SQLException {
         when(mockResultSet.next()).thenReturn(true, false);
         when(mockResultSet.getString("title")).thenReturn("C# In Depth");
         when(mockResultSet.getString("author")).thenReturn("Jon Skeet");
@@ -208,7 +212,7 @@ class LibraryTest {
     }
 
     @Test
-    void givenTwoBooks_onViewBooks_returnsCorrectList() throws SQLException, InvalidParameterException {
+    void givenTwoBooks_onViewBooks_returnsCorrectList() throws SQLException {
         when(mockResultSet.next()).thenReturn(true, true, false);
         when(mockResultSet.getString("title")).thenReturn("C# In Depth", "Clean Code");
         when(mockResultSet.getString("author")).thenReturn("Jon Skeet", "Robert C. Martin");
@@ -276,10 +280,10 @@ class LibraryTest {
     }
 
     @Test
-    void givenDatabaseError_onSearchBook_throwsBookNotFoundException() throws SQLException {
+    void givenDatabaseError_onSearchBook_throwsRuntimeException() throws SQLException {
         when(mockConnection.prepareStatement(anyString())).thenThrow(new SQLException("Database connection failed"));
         library = new Library(mockConnection);
-        assertThrows(BookNotFoundException.class, () -> library.searchBook("Clean Code"));
+        assertThrows(RuntimeException.class, () -> library.searchBook("Clean Code"));
     }
 
     @Test
@@ -327,7 +331,7 @@ class LibraryTest {
 
         List<Book> authorBooks = library.getBooksByAuthor("Jon Skeet");
         assertEquals(1, authorBooks.size());
-        Book returnedBook = authorBooks.get(0);
+        Book returnedBook = authorBooks.getFirst();
         assertEquals("Software Mistakes and Tradeoffs: How to Make Good Programming Decisions", returnedBook.getTitle());
         assertEquals("Jon Skeet", returnedBook.getAuthor());
     }
@@ -349,7 +353,7 @@ class LibraryTest {
         List<Book> authorBooks = library.getBooksByAuthor("Jon Skeet");
         assertEquals(2, authorBooks.size());
 
-        Book returnBook = authorBooks.get(0);
+        Book returnBook = authorBooks.getFirst();
         assertEquals("C# In Depth", returnBook.getTitle());
         assertEquals("Jon Skeet", returnBook.getAuthor());
 
@@ -391,7 +395,7 @@ class LibraryTest {
         List<Book> authorBooksOne = library.getBooksByAuthor("Jon Skeet");
         assertEquals(2, authorBooksOne.size());
 
-        Book returnBookTwo = authorBooksOne.get(0);
+        Book returnBookTwo = authorBooksOne.getFirst();
         assertEquals("C# In Depth", returnBookTwo.getTitle());
         assertEquals("Jon Skeet", returnBookTwo.getAuthor());
 
@@ -402,7 +406,7 @@ class LibraryTest {
         List<Book> authorBooksTwo = library.getBooksByAuthor("Robert C. Martin");
         assertEquals(1, authorBooksTwo.size());
 
-        Book returnedBookThree = authorBooksTwo.get(0);
+        Book returnedBookThree = authorBooksTwo.getFirst();
         assertEquals("Clean Code", returnedBookThree.getTitle());
         assertEquals("Robert C. Martin", returnedBookThree.getAuthor());
     }
@@ -694,7 +698,7 @@ class LibraryTest {
 
         List<Book> borrowedBooks = library.viewBorrowedBooks();
         assertEquals(1, borrowedBooks.size());
-        Book borrowedBook = borrowedBooks.get(0);
+        Book borrowedBook = borrowedBooks.getFirst();
         assertEquals("Software Mistakes and Tradeoffs: How to Make Good Programming Decisions", borrowedBook.getTitle());
 
         when(mockResultSet.next()).thenReturn(true, false);
@@ -703,7 +707,7 @@ class LibraryTest {
         when(mockResultSet.getBoolean("is_borrowed")).thenReturn(false);
 
         List<Book> availableBooks = library.viewAvailableBooks();
-        assertEquals("Software Mistakes and Tradeoffs: How to Make Good Programming Decisions", availableBooks.get(0).getTitle());
+        assertEquals("Software Mistakes and Tradeoffs: How to Make Good Programming Decisions", availableBooks.getFirst().getTitle());
     }
 
     @Test
@@ -763,7 +767,7 @@ class LibraryTest {
 
         List<Book> availableBooks = library.viewAvailableBooks();
         assertEquals(1, availableBooks.size());
-        assertEquals("Software Mistakes and Tradeoffs: How to Make Good Programming Decisions", availableBooks.get(0).getTitle());
+        assertEquals("Software Mistakes and Tradeoffs: How to Make Good Programming Decisions", availableBooks.getFirst().getTitle());
 
         when(mockResultSet.next()).thenReturn(true, false);
         when(mockResultSet.getString("title")).thenReturn("Software Mistakes and Tradeoffs: How to Make Good Programming Decisions");
@@ -772,7 +776,7 @@ class LibraryTest {
 
         borrowedBooks = library.viewBorrowedBooks();
         assertEquals(1, borrowedBooks.size());
-        assertEquals("Software Mistakes and Tradeoffs: How to Make Good Programming Decisions", borrowedBooks.get(0).getTitle());
+        assertEquals("Software Mistakes and Tradeoffs: How to Make Good Programming Decisions", borrowedBooks.getFirst().getTitle());
 
         when(mockResultSet.next()).thenReturn(true, true, false);
         when(mockResultSet.getString("title")).thenReturn("Software Mistakes and Tradeoffs: How to Make Good Programming Decisions", "Software Mistakes and Tradeoffs: How to Make Good Programming Decisions");
