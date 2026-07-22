@@ -93,15 +93,22 @@ public class Library {
         }
     }
 
+    /**
+     * Gets all books by author.
+     *
+     * @param author the author of the books to get from library.
+     * @return a list of books by the author.
+     * @throws InvalidParameterException if author is null, empty ot blank.
+     * @throws AuthorNotFoundException if author is not found.
+     */
     public List<Book> getBooksByAuthor(String author) throws InvalidParameterException, AuthorNotFoundException, SQLException {
         validateAuthor(author);
         List<Book> books = new ArrayList<>();
         try(PreparedStatement preparedStatement = connection.prepareStatement(SELECT_BOOKS_BY_AUTHOR_QUERY)) {
             preparedStatement.setString(1, author.trim());
             try(ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
+                while (resultSet.next())
                     books.add(mapBook(resultSet));
-                }
             }
         }
         if(books.isEmpty())
@@ -147,9 +154,8 @@ public class Library {
         try(PreparedStatement preparedStatement = connection.prepareStatement(SEARCH_FOR_BOOK_Query)) {
             preparedStatement.setString(1, title.trim());
             try(ResultSet resultSet = preparedStatement.executeQuery()) {
-                while(resultSet.next()) {
+                while(resultSet.next())
                     foundBooks.add(mapBook(resultSet));
-                }
             }
         } catch (SQLException e) {
             System.out.println("Error searching for book in the library: " + e.getMessage());
@@ -168,9 +174,8 @@ public class Library {
         List<Book> books = new ArrayList<>();
         try (PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_BOOKS_QUERY);
              ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next()) {
+            while (resultSet.next())
                 books.add(mapBook(resultSet));
-            }
         } catch (SQLException e) {
             throw new RuntimeException("Invalid argument when reading from database: " + e.getMessage(), e);
         }
@@ -186,9 +191,8 @@ public class Library {
         List<Book> books = new ArrayList<>();
         try(PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_AVAILABLE_BOOKS_QUERY);
             ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next()) {
+            while (resultSet.next())
                 books.add(mapBook(resultSet));
-            }
         } catch (SQLException e) {
             throw new RuntimeException("Invalid argument when reading from database: " + e.getMessage(), e);
         }
@@ -197,13 +201,17 @@ public class Library {
         return books;
     }
 
+    /**
+     * Gets a list of all borrowed books.
+     *
+     * @return a list of all borrowed books.
+     */
     public List<Book> viewBorrowedBooks() throws InvalidParameterException, NoBooksBorrowedException {
         List<Book> books = new ArrayList<>();
         try(PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_BORROWED_BOOKS_QUERY);
             ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next()) {
+            while (resultSet.next())
                 books.add(mapBook(resultSet));
-            }
         } catch (SQLException e) {
             throw new RuntimeException("Invalid argument when reading from database: " + e.getMessage(), e);
         }
