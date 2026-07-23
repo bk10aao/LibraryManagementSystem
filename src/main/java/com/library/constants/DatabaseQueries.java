@@ -18,7 +18,9 @@ public class DatabaseQueries {
     public static final String SELECT_ALL_AVAILABLE_BOOKS_QUERY = "SELECT title, author, is_borrowed FROM books WHERE is_borrowed = false";
 
     public static final String SELECT_ALL_BORROWED_BOOKS_QUERY = "SELECT title, author, is_borrowed FROM books WHERE is_borrowed = true";
-    public static final String UPDATE_BORROWED_STATUS = "UPDATE books SET is_borrowed = ? WHERE title = ? COLLATE NOCASE";
-
+    public static final String UPDATE_BORROWED_STATUS =
+            "UPDATE books SET is_borrowed = ? WHERE title = ? AND rowid = (" +
+            "  SELECT rowid FROM books WHERE title = ? AND is_borrowed = ? LIMIT 1" +
+            ")";
 
 }

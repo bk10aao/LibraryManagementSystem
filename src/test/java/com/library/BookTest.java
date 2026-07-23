@@ -1,6 +1,6 @@
 package com.library;
 
-import com.library.exceptions.BookAlreadyBorrowedException;
+import com.library.exceptions.AlreadyBorrowedException;
 import com.library.exceptions.InvalidParameterException;
 import org.junit.jupiter.api.Test;
 
@@ -45,7 +45,7 @@ class BookTest {
     }
 
     @Test
-    public void givenBook_onIsBorrowed_returnsFalse() throws InvalidParameterException, BookAlreadyBorrowedException {
+    public void givenBook_onIsBorrowed_returnsFalse() throws InvalidParameterException, AlreadyBorrowedException {
         Book book = new Book("C# In Depth", "Jon Skeet");
         assertEquals("C# In Depth", book.getTitle());
         assertEquals("Jon Skeet", book.getAuthor());
@@ -55,14 +55,14 @@ class BookTest {
     }
 
     @Test
-    public void givenBook_alreadyBorrowed_onBorrowBook_throwsAlreadyBorrowedException() throws InvalidParameterException, BookAlreadyBorrowedException {
+    public void givenBook_alreadyBorrowed_onBorrowBook_throwsAlreadyBorrowedException() throws InvalidParameterException, AlreadyBorrowedException {
         Book book = new Book("C# In Depth", "Jon Skeet");
         assertEquals("C# In Depth", book.getTitle());
         assertEquals("Jon Skeet", book.getAuthor());
         assertFalse(book.isBorrowed());
         book.borrowBook();
         assertTrue(book.isBorrowed());
-        assertThrows(BookAlreadyBorrowedException.class, book::borrowBook);
+        assertThrows(AlreadyBorrowedException.class, book::borrowBook);
     }
 
     @Test

@@ -1,6 +1,6 @@
 package com.library;
 
-import com.library.exceptions.BookAlreadyBorrowedException;
+import com.library.exceptions.AlreadyBorrowedException;
 import com.library.exceptions.InvalidParameterException;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,9 +27,9 @@ public class Book {
         this.title = title;
     }
 
-    public void borrowBook() throws BookAlreadyBorrowedException {
+    public void borrowBook() throws AlreadyBorrowedException {
         if(this.isBorrowed)
-            throw new BookAlreadyBorrowedException(BOOK_ALREADY_BORROWED);
+            throw new AlreadyBorrowedException(BOOK_ALREADY_BORROWED);
         this.isBorrowed = true;
     }
 

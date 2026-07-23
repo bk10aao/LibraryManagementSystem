@@ -22,7 +22,7 @@ public class Main {
         } catch (SQLException e) {
             System.err.println(e.getClass().getName() + ": " + e.getMessage());
             System.exit(0);
-        } catch (InvalidParameterException | NoBooksAvailableException e) {
+        } catch (InvalidParameterException e) {
             throw new RuntimeException(e);
         }
     }

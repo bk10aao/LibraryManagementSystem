@@ -52,10 +52,11 @@ public class LibraryApplication {
         this.library = library;
     }
 
-    public void run() throws SQLException, InvalidParameterException, NoBooksAvailableException {
+    public void run() throws SQLException, InvalidParameterException {
         boolean running = true;
         System.out.println(WELCOME);
-        try (Scanner scanner = new Scanner(System.in)) {
+        Scanner scanner = new Scanner(System.in);
+        try {
             while (running) {
                 System.out.println(MENU);
                 int choice = validateChoices(scanner, EXIT_OPTION);
@@ -91,6 +92,8 @@ public class LibraryApplication {
                         break;
                 }
             }
+        } finally {
+            scanner.close();
         }
     }
 
@@ -119,19 +122,19 @@ public class LibraryApplication {
         }
     }
 
-    private void getAuthorBooks(final Scanner scanner) throws SQLException {
+    private void getAuthorBooks(final Scanner scanner) {
         System.out.print(BOOKS_BY_AUTHOR);
         String author = scanner.nextLine();
         try {
             library.getBooksByAuthor(author).stream()
-                    .sorted(Comparator.comparing(Book::getAuthor))
+                    .sorted(Comparator.comparing(Book::getTitle))
                     .forEach(System.out::println);
         } catch (InvalidParameterException | AuthorNotFoundException e) {
             System.out.println(e.getMessage());
         }
     }
 
-    private void listAllBooks(final Scanner scanner) throws InvalidParameterException {
+    private void listAllBooks(final Scanner scanner) {
         System.out.println(SORT_MENU);
         int sortAllChoice = validateChoices(scanner, 2);
         System.out.println(ALL_BOOKS);
@@ -151,27 +154,35 @@ public class LibraryApplication {
         }
     }
 
-    private void listAvailableBooks(final Scanner scanner) throws InvalidParameterException, NoBooksAvailableException {
+    private void listAvailableBooks(final Scanner scanner) {
         System.out.println(SORT_MENU);
         int sortAvailableChoice = validateChoices(scanner, 2);
         System.out.println(AVAILABLE_BOOKS);
         switch (sortAvailableChoice) {
             case SORT_BY_AUTHOR:
-                library.viewAvailableBooks().stream()
-                        .sorted(Comparator.comparing(Book::getAuthor)
-                                .thenComparing(Book::getTitle))
-                        .forEach(System.out::println);
+                try {
+                    library.viewAvailableBooks().stream()
+                            .sorted(Comparator.comparing(Book::getAuthor)
+                                    .thenComparing(Book::getTitle))
+                            .forEach(System.out::println);
+                } catch (NoBooksAvailableException e) {
+                    System.out.println(e.getMessage());
+                }
                 break;
             case SORT_BY_TITLE:
-                library.viewAvailableBooks().stream()
-                        .sorted(Comparator.comparing(Book::getTitle)
-                                .thenComparing(Book::getAuthor))
-                        .forEach(System.out::println);
+                try {
+                    library.viewAvailableBooks().stream()
+                            .sorted(Comparator.comparing(Book::getTitle)
+                                    .thenComparing(Book::getAuthor))
+                            .forEach(System.out::println);
+                } catch (NoBooksAvailableException e) {
+                    System.out.println(e.getMessage());
+                }
                 break;
         }
     }
 
-    private void listBorrowedBooks(final Scanner scanner) throws InvalidParameterException {
+    private void listBorrowedBooks(final Scanner scanner) {
         System.out.println(SORT_MENU);
         int sortAvailableChoice = validateChoices(scanner, 3);
         System.out.println(ALL_BORROWED_BOOKS);

@@ -85,6 +85,8 @@ public class Library {
         try(PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_BORROWED_STATUS)) {
             preparedStatement.setBoolean(1, true);
             preparedStatement.setString(2, book.getTitle());
+            preparedStatement.setString(3, book.getTitle());
+            preparedStatement.setBoolean(4, false);
             preparedStatement.executeUpdate();
             return true;
         } catch (SQLException e) {
@@ -126,6 +128,8 @@ public class Library {
         try(var preparedStatement = connection.prepareStatement(UPDATE_BORROWED_STATUS)) {
             preparedStatement.setBoolean(1, false);
             preparedStatement.setString(2, title.trim());
+            preparedStatement.setString(3, title.trim());
+            preparedStatement.setBoolean(4, true);
             preparedStatement.executeUpdate();
             return true;
         } catch (SQLException e) {
